@@ -13018,5 +13018,18 @@
       "v": "v"
     },
     " más en Elementos vinculados"
-  ]
+  ],
+  "8fe2454b9e851c93": "Almacenamiento en frío",
+  "0871a53c08770726": "Mover los hilos inactivos al almacenamiento en frío",
+  "2d643d006110fcaa": "Saca de la base de datos la salida de comandos, los adjuntos y las imágenes de los hilos resueltos y archivados que llevan inactivos este número de días. Los mensajes se quedan, así que la búsqueda los sigue encontrando.",
+  "db0afe05947419c3": "Imágenes en almacenamiento en frío",
+  "3621afefcc46cedf": "Conservar todas",
+  "30aece8959127aa8": "Las imágenes movidas se abren como antes.",
+  "414c6af934e10aa2": "Conservar solo las imágenes cuyo archivo ya no existe",
+  "53c337a19df053ad": "Una imagen cuyo archivo sigue en el disco conserva solo su ruta y se muestra desde ese archivo. Las demás imágenes se conservan.",
+  "80f4f0eaa7ad94de": "Descartar todas",
+  "79f20d8cd82c9ee2": "Cada imagen movida conserva solo su ruta. Una imagen cuyo archivo ya no existe deja de mostrarse.",
+  "4543a246dbf923bf": "Tamaño del almacenamiento en frío",
+  "69cfaefee02e5c43": "Leído del almacenamiento en frío.",
+  "7445fdc70ac0c734": "disco almacenamiento base de datos tamaño mover hilos inactivos resueltos archivados salida de comandos adjuntos imágenes conservar descartar días"
 }

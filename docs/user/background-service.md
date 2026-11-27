@@ -82,3 +82,11 @@ t3 doctor --fix    # Non-interactive recommended repairs
 
 - Needs free disk space of ~2× active data size (in `TMPDIR`/`/var/tmp` and beside the database). Large databases can take over an hour.
 - `t3 doctor` optionally offers to remove the legacy pre-0.1.0 `state.sqlite` backup only when all active projects and threads exist in the current database (`--fix` never deletes it automatically).
+
+### Cold storage
+
+Turn on **Move idle threads to cold storage** in **Settings → Maintenance → Cold storage** to keep the database small. Once a day, T3 Code moves the command output, attachments, and images of settled and archived threads idle for the set days (7 when you turn it on) into a compressed `cold-storage.sqlite` next to the database. Threads with a running turn stay. Messages stay in the database, so search still finds these threads, and a moved output or attachment opens as before. Nothing in cold storage is deleted.
+
+**Images in cold storage** chooses what happens to images: **Keep all** (the default), **Keep only images whose file is gone**, or **Drop all**, which keeps only each image's path. A dropped image whose file is gone no longer shows.
+
+A database made before automatic shrinking keeps its size after a move until one repair. The first run asks for the same repair as **Reclaim** once, only while no turn runs, so the server restarts for it.

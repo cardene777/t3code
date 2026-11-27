@@ -413,14 +413,58 @@ export function mcpToolResultOutput(result: {
   return structuredContent ?? result.content;
 }
 
-export function omitToolOutputImageData(value: unknown): unknown {
-  const omit = (block: unknown) => {
+export interface IndexedToolOutputImage {
+  /** Position among the output's image blocks, the asset index order. */
+  readonly index: number;
+  readonly mimeType: string;
+  readonly data: string;
+}
+
+function mapImageBlocks(
+  value: unknown,
+  map: (block: unknown, image: ToolOutputImage, index: number) => unknown,
+): unknown {
+  let index = 0;
+  const each = (block: unknown) => {
     const image = readToolOutputImage(block);
-    return image?.data === undefined ? block : { type: "image", mimeType: image.mimeType };
+    return image === null ? block : map(block, image, index++);
   };
-  if (Array.isArray(value)) return value.map(omit);
+  if (Array.isArray(value)) return value.map(each);
   if (Predicate.isObject(value) && Array.isArray(value.content)) {
-    return { ...value, content: value.content.map(omit) };
+    return { ...value, content: value.content.map(each) };
   }
-  return omit(value);
+  return each(value);
+}
+
+/** Takes the image data out of an output; `putToolOutputImageData` puts it back at the same blocks. */
+export function takeToolOutputImageData(value: unknown): {
+  readonly output: unknown;
+  readonly images: ReadonlyArray<IndexedToolOutputImage>;
+} {
+  const images: Array<IndexedToolOutputImage> = [];
+  const output = mapImageBlocks(value, (block, image, index) => {
+    if (image.data === undefined || image.data === "") return block;
+    images.push({ index, mimeType: image.mimeType, data: image.data });
+    return { type: "image", mimeType: image.mimeType };
+  });
+  return { output, images };
+}
+
+export function putToolOutputImageData(
+  value: unknown,
+  images: ReadonlyArray<IndexedToolOutputImage>,
+): unknown {
+  const byIndex = new Map(images.map((image) => [image.index, image]));
+  return mapImageBlocks(value, (block, image, index) => {
+    const taken = byIndex.get(index);
+    return taken === undefined || image.data !== undefined
+      ? block
+      : { type: "image", mimeType: taken.mimeType, data: taken.data };
+  });
+}
+
+export function omitToolOutputImageData(value: unknown): unknown {
+  return mapImageBlocks(value, (block, image) =>
+    image.data === undefined ? block : { type: "image", mimeType: image.mimeType },
+  );
 }

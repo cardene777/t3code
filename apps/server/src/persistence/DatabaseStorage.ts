@@ -16,6 +16,7 @@ import * as SqlClient from "effect/sql/SqlClient";
 import { resolveHostCliCommand } from "../cli/invocation.ts";
 import * as ServerConfig from "../config.ts";
 import * as ProjectionMaintenance from "../orchestration-v2/ProjectionMaintenance.ts";
+import { ColdStorageStore } from "./ColdStorageStore.ts";
 import * as DatabaseMaintenance from "./DatabaseMaintenance.ts";
 import { forkParked } from "../serverActivation.ts";
 
@@ -52,6 +53,11 @@ const make = Effect.gen(function* () {
   const statusRef = yield* SubscriptionRef.make<DatabaseStorageStatus | null>(null);
   const restart = yield* ServerRestart;
   const reclaimFiles = DatabaseMaintenance.reclaimFiles(path, config.dbPath);
+  // Optional like the projection store's; the server provides it beside the database.
+  const coldStorageBytes = Option.match(yield* Effect.serviceOption(ColdStorageStore), {
+    onNone: () => Effect.undefined,
+    onSome: (coldStorage) => coldStorage.size,
+  });
   let reclaimFailure = Option.getOrUndefined(
     yield* fs.readFileString(reclaimFiles.failure).pipe(Effect.option),
   );
@@ -101,6 +107,7 @@ const make = Effect.gen(function* () {
   const publishStatus = Effect.gen(function* () {
     if (!doctorTargetsThisDatabase) return;
     const { databaseBytes, reclaimableBytes, incrementalVacuum } = yield* readPages;
+    const coldBytes = yield* coldStorageBytes;
     const next: DatabaseStorageStatus = {
       databaseBytes,
       reclaimableBytes,
@@ -108,6 +115,7 @@ const make = Effect.gen(function* () {
       compactCommand,
       canReclaim: restart !== null,
       ...(reclaimFailure === undefined ? {} : { reclaimFailure }),
+      ...(coldBytes === undefined ? {} : { coldStorageBytes: coldBytes }),
     };
     // Every set reaches each open Storage page; most passes change nothing.
     if (!Equal.equals(yield* SubscriptionRef.get(statusRef), next)) {

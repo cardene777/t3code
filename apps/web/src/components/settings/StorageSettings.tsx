@@ -1,4 +1,5 @@
 import type {
+  ColdStorageImages,
   StorageCleanupReport,
   StorageCleanupSettings,
   WorktreeCleanupRules,
@@ -120,11 +121,14 @@ function RetentionControl({
   value,
   onChange,
   minimum = 1,
+  firstDays = 8,
 }: {
   label: string;
   value: number | null;
   onChange: (value: number | null, onFailed: () => void) => void;
   minimum?: number;
+  /** The age a rule switched on starts from. */
+  firstDays?: number;
 }) {
   const gt = useGT();
   const [draft, setDraft] = useState(value);
@@ -257,7 +261,7 @@ function RetentionControl({
         onMouseDown={(event) => event.preventDefault()}
         onCheckedChange={(enabled) => {
           if (enabled) {
-            setDraft(8);
+            setDraft(firstDays);
             setEnabling("draft");
           } else switchOff();
         }}
@@ -556,6 +560,139 @@ function CleanupSection() {
               ),
           )}
         </FoldedSettingsSection>
+      )}
+    </SettingsSection>
+  );
+}
+
+const coldStorageStatusesAtom = environmentAtomList("web-cold-storage-statuses", (environmentId) =>
+  serverEnvironment.databaseStorage({ environmentId, input: {} }),
+);
+
+const COLD_STORAGE_IMAGES = {
+  "keep-all": {
+    label: msg("Keep all"),
+    description: msg("Moved images open as before."),
+  },
+  "keep-without-file": {
+    label: msg("Keep only images whose file is gone"),
+    description: msg(
+      "An image whose file is still on disk keeps only its path and shows from that file. Other images are kept.",
+    ),
+  },
+  "drop-all": {
+    label: msg("Drop all"),
+    description: msg(
+      "Every moved image keeps only its path. An image whose file is gone no longer shows.",
+    ),
+  },
+} as const satisfies Record<ColdStorageImages, object>;
+
+const isColdStorageImages = (value: unknown): value is ColdStorageImages =>
+  typeof value === "string" && value in COLD_STORAGE_IMAGES;
+
+function ColdStorageSection() {
+  const gt = useGT();
+  const messages = useMessages();
+  const { connectedEnvironments, targets } = useSettingsScope();
+  const settings = useScopedSettings().storageCleanup;
+  const updateSettings = useUpdateScopedSettings();
+  const environmentIds = connectedEnvironments.map((environment) => environment.environmentId);
+  const statuses = useAtomValue(coldStorageStatusesAtom(environmentIdsKey(environmentIds)));
+  if (
+    connectedEnvironments.length === 0 ||
+    connectedEnvironments.some(
+      (environment) => environment.serverConfig?.environment.capabilities.coldStorage !== true,
+    )
+  ) {
+    return null;
+  }
+  const mixed = (key: "coldStorageAfterDays" | "coldStorageImages") =>
+    targets.length > 1 &&
+    targets.some((target) => target.settings.storageCleanup[key] !== settings[key]);
+  const update = (patch: Partial<StorageCleanupSettings>, options?: SaveOptions) =>
+    updateSettings({ storageCleanup: patch }, options);
+  const sizes = connectedEnvironments.flatMap((environment, index) => {
+    const status = statuses[index];
+    const bytes = status?._tag === "Success" ? status.value?.coldStorageBytes : undefined;
+    return bytes === undefined
+      ? []
+      : [
+          {
+            environment,
+            bytes,
+            label: settingsScopeEnvironmentLabel(environment, connectedEnvironments),
+          },
+        ];
+  });
+  const imagesMixed = mixed("coldStorageImages");
+  const moveRule = gt("Move idle threads to cold storage");
+  const imagesRule = gt("Images in cold storage");
+  return (
+    <SettingsSection id="storage-cold-storage" title={gt("Cold storage")}>
+      <SettingsRow
+        title={moveRule}
+        status={mixed("coldStorageAfterDays") ? gt("Mixed across selected machines") : undefined}
+        managedPaths={["storageCleanup.coldStorageAfterDays"]}
+        description={gt(
+          "Moves the command output, attachments, and images of settled and archived threads idle this many days out of the database. Messages stay, so search still finds them.",
+        )}
+        serverScoped
+        control={
+          <RetentionControl
+            label={moveRule}
+            value={settings.coldStorageAfterDays}
+            firstDays={7}
+            onChange={(coldStorageAfterDays, onFailed) =>
+              update({ coldStorageAfterDays }, { onFailed })
+            }
+          />
+        }
+      />
+      <SettingsRow
+        title={imagesRule}
+        status={imagesMixed ? gt("Mixed across selected machines") : undefined}
+        managedPaths={["storageCleanup.coldStorageImages"]}
+        description={messages(COLD_STORAGE_IMAGES[settings.coldStorageImages].description)}
+        serverScoped
+        control={
+          <Select
+            value={imagesMixed ? null : settings.coldStorageImages}
+            onValueChange={(next) => {
+              if (isColdStorageImages(next)) update({ coldStorageImages: next });
+            }}
+          >
+            <SelectTrigger size="sm" aria-label={imagesRule}>
+              <SelectValue>
+                {imagesMixed
+                  ? gt("Mixed")
+                  : messages(COLD_STORAGE_IMAGES[settings.coldStorageImages].label)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectPopup align="end" alignItemWithTrigger={false}>
+              {Object.entries(COLD_STORAGE_IMAGES).map(([value, { label }]) => (
+                <SelectItem key={value} value={value}>
+                  {messages(label)}
+                </SelectItem>
+              ))}
+            </SelectPopup>
+          </Select>
+        }
+      />
+      {sizes.length > 0 && (
+        <SettingsRow
+          title={gt("Cold storage size")}
+          description={
+            sizes.length > 1
+              ? sizes.map(({ environment, label, bytes }) => (
+                  <span key={environment.environmentId} className="block">
+                    {label}: {formatBytes(bytes)}
+                  </span>
+                ))
+              : undefined
+          }
+          control={sizes.length === 1 ? <span>{formatBytes(sizes[0]!.bytes)}</span> : undefined}
+        />
       )}
     </SettingsSection>
   );
@@ -967,6 +1104,7 @@ export function StorageCleanupSections() {
         </AnimatedHeight>
       </SettingsSection>
       <CleanupSection />
+      <ColdStorageSection />
       {databaseStorageNotice}
     </>
   );

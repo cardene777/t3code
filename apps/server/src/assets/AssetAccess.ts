@@ -54,6 +54,7 @@ import { makeIsServerInternalPath } from "../auth/serverInternalPaths.ts";
 import { parseAttachmentFileExtension, resolveAttachmentPathById } from "../attachmentStore.ts";
 import * as ServerConfig from "../config.ts";
 import { findThemeBackground } from "../environmentTheme.ts";
+import { ColdStorageStore } from "../persistence/ColdStorageStore.ts";
 import * as Orchestrator from "../orchestration-v2/Orchestrator.ts";
 import { expandHomePath } from "@t3tools/provider-core/server/pathExpansion";
 import * as ProjectFaviconResolver from "../project/ProjectFaviconResolver.ts";
@@ -74,6 +75,16 @@ import * as WorkspacePreviewRevisions from "./WorkspacePreviewRevisions.ts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
 
 export const ASSET_ROUTE_PREFIX = "/api/assets";
+
+// A thread's attachment moved into cold storage comes back to the attachments folder when opened.
+const openAttachmentFile = Effect.fn("AssetAccess.openAttachmentFile")(function* (
+  attachmentId: string,
+) {
+  const coldStorage = yield* Effect.serviceOption(ColdStorageStore);
+  if (Option.isSome(coldStorage)) return yield* coldStorage.value.attachmentFile(attachmentId);
+  const config = yield* ServerConfig.ServerConfig;
+  return resolveAttachmentPathById({ attachmentsDir: config.attachmentsDir, attachmentId });
+});
 
 const ASSET_TOKEN_TTL_MS = 60 * 60 * 1000;
 const PROJECT_FAVICON_TOKEN_BUCKET_MS = 30 * 60 * 1000;
@@ -731,11 +742,7 @@ export const issueAssetUrl = Effect.fn("AssetAccess.issueAssetUrl")(function* (i
       break;
     }
     case "attachment": {
-      const config = yield* ServerConfig.ServerConfig;
-      const attachmentPath = resolveAttachmentPathById({
-        attachmentsDir: config.attachmentsDir,
-        attachmentId: input.resource.attachmentId,
-      });
+      const attachmentPath = yield* openAttachmentFile(input.resource.attachmentId);
       if (!attachmentPath) {
         return yield* new AssetAttachmentNotFoundError({
           resource: input.resource,
@@ -997,11 +1004,7 @@ export const resolveAsset = Effect.fn("AssetAccess.resolveAsset")(function* (
   if (!claims || claims.expiresAt <= (yield* Clock.currentTimeMillis)) return null;
 
   if (claims.kind === "attachment") {
-    const config = yield* ServerConfig.ServerConfig;
-    const attachmentPath = resolveAttachmentPathById({
-      attachmentsDir: config.attachmentsDir,
-      attachmentId: claims.attachmentId,
-    });
+    const attachmentPath = yield* openAttachmentFile(claims.attachmentId);
     if (!attachmentPath) return null;
     const fileSystem = yield* FileSystem.FileSystem;
     const info = yield* ProjectFaviconResolver.optionOnNotFound(

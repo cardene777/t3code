@@ -1,10 +1,14 @@
 import { act, fakeTimers, render, type Screen } from "../../../test/render";
 import { RegistryProvider } from "@effect/atom-react";
-import { DEFAULT_SERVER_SETTINGS, type StorageCleanupReport } from "@t3tools/contracts";
+import {
+  DEFAULT_SERVER_SETTINGS,
+  type DatabaseStorageStatus,
+  type StorageCleanupReport,
+} from "@t3tools/contracts";
 import { getTranslationsSnapshot, GTProvider } from "gt-react";
 import { type ReactNode } from "react";
 import { expect, it, vi } from "vite-plus/test";
-import { userEvent } from "vite-plus/test/browser";
+import { page, userEvent } from "vite-plus/test/browser";
 
 import { initializeI18n } from "~/i18n/initializeI18n";
 
@@ -16,18 +20,25 @@ const state = vi.hoisted(() => ({
   run: vi.fn(),
   update: vi.fn(),
   report: null as StorageCleanupReport | null,
+  databaseStorage: null as DatabaseStorageStatus | null,
 }));
 
 vi.mock(import("../../state/server"), async (original) => {
   const actual = await original();
   const { Atom } = await import("effect/reactivity");
   const report = Atom.make(() => ({ _tag: "Success", value: state.report, waiting: false }));
+  const databaseStorage = Atom.make(() => ({
+    _tag: "Success",
+    value: state.databaseStorage,
+    waiting: false,
+  }));
   const allowed = Atom.make(true);
   return {
     ...actual,
     serverEnvironment: {
       ...actual.serverEnvironment,
       storageCleanupReport: (() => report) as never,
+      databaseStorage: (() => databaseStorage) as never,
       runStorageCleanup: {
         ...actual.serverEnvironment.runStorageCleanup,
         permissionAtom: () => allowed,
@@ -52,6 +63,7 @@ vi.mock(import("./SettingsScopeContext"), async (original) => ({
             storageCleanup: true,
             storageCleanupRun: true,
             settledWorktreeCleanup: true,
+            coldStorage: true,
           },
         },
       },
@@ -113,6 +125,8 @@ function setup() {
       worktreeUnchanged: false,
       browserArtifactsAfterDays: null,
       logsAfterDays: null,
+      coldStorageAfterDays: null,
+      coldStorageImages: "keep-all",
     },
     projectSettingsOverrides: {},
   };
@@ -121,6 +135,7 @@ function setup() {
     settings: state.settings,
   }));
   state.report = null;
+  state.databaseStorage = null;
   state.run.mockReset();
   state.update.mockReset();
 }
@@ -386,4 +401,29 @@ it("settles mixed retention statuses independently across selected machines", as
   await screen.rerender(panel());
   await advance(300);
   await expect.element(screen.getByTestId("logs-retention-status")).not.toBeInTheDocument();
+});
+
+it("shows cold storage and its settings", async () => {
+  setup();
+  state.targets = state.targets.slice(0, 1);
+  state.databaseStorage = {
+    databaseBytes: 8 * 1024 ** 3,
+    reclaimableBytes: 0,
+    incrementalVacuumEnabled: true,
+    compactCommand: "t3 doctor",
+    coldStorageBytes: 3 * 1024 ** 3,
+  };
+  await using screen = await render(panel());
+  const coldRule = "Move idle threads to cold storage";
+  await expect.element(screen.getByText("3.00 GB")).toBeInTheDocument();
+  await expect.element(screen.getByRole("switch", { name: coldRule })).not.toBeChecked();
+
+  await userEvent.click(screen.getByRole("switch", { name: coldRule }));
+  await expect.element(screen.getByLabelText(`${coldRule} in days`)).toHaveValue("7");
+  await userEvent.keyboard("{Enter}");
+  expect(saves()).toEqual([{ coldStorageAfterDays: 7 }]);
+
+  await userEvent.click(screen.getByRole("combobox", { name: "Images in cold storage" }));
+  await page.getByRole("option", { name: "Drop all" }).click();
+  expect(saves()).toEqual([{ coldStorageAfterDays: 7 }, { coldStorageImages: "drop-all" }]);
 });

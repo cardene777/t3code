@@ -13023,5 +13023,18 @@
       "v": "v"
     },
     " mais em Itens vinculados"
-  ]
+  ],
+  "8fe2454b9e851c93": "Armazenamento a frio",
+  "0871a53c08770726": "Mover threads inativas para o armazenamento a frio",
+  "2d643d006110fcaa": "Tira do banco de dados a saída de comandos, os anexos e as imagens das threads concluídas e arquivadas que estão inativas há este número de dias. As mensagens ficam, então a busca continua encontrando essas threads.",
+  "db0afe05947419c3": "Imagens no armazenamento a frio",
+  "3621afefcc46cedf": "Manter todas",
+  "30aece8959127aa8": "As imagens movidas abrem como antes.",
+  "414c6af934e10aa2": "Manter só as imagens cujo arquivo sumiu",
+  "53c337a19df053ad": "Uma imagem cujo arquivo ainda está no disco mantém só o caminho e é exibida a partir desse arquivo. As outras imagens são mantidas.",
+  "80f4f0eaa7ad94de": "Descartar todas",
+  "79f20d8cd82c9ee2": "Cada imagem movida mantém só o caminho. Uma imagem cujo arquivo sumiu deixa de ser exibida.",
+  "4543a246dbf923bf": "Tamanho do armazenamento a frio",
+  "69cfaefee02e5c43": "Lido do armazenamento a frio.",
+  "7445fdc70ac0c734": "disco armazenamento banco de dados tamanho mover threads inativas concluídas arquivadas saída de comandos anexos imagens manter descartar dias"
 }

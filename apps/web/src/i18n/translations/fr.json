@@ -13023,5 +13023,18 @@
       "v": "v"
     },
     " de plus dans Éléments associés"
-  ]
+  ],
+  "8fe2454b9e851c93": "Stockage à froid",
+  "0871a53c08770726": "Déplacer les fils inactifs vers le stockage à froid",
+  "2d643d006110fcaa": "Sort de la base de données la sortie des commandes, les pièces jointes et les images des fils clos et archivés inactifs depuis ce nombre de jours. Les messages restent, la recherche les trouve donc toujours.",
+  "db0afe05947419c3": "Images dans le stockage à froid",
+  "3621afefcc46cedf": "Tout conserver",
+  "30aece8959127aa8": "Les images déplacées s’ouvrent comme avant.",
+  "414c6af934e10aa2": "Ne conserver que les images dont le fichier a disparu",
+  "53c337a19df053ad": "Une image dont le fichier est encore sur le disque ne garde que son chemin et s’affiche depuis ce fichier. Les autres images sont conservées.",
+  "80f4f0eaa7ad94de": "Tout supprimer",
+  "79f20d8cd82c9ee2": "Chaque image déplacée ne garde que son chemin. Une image dont le fichier a disparu ne s’affiche plus.",
+  "4543a246dbf923bf": "Taille du stockage à froid",
+  "69cfaefee02e5c43": "Lu depuis le stockage à froid.",
+  "7445fdc70ac0c734": "disque stockage base de données taille déplacer fils inactifs clos archivés sortie commandes pièces jointes images conserver supprimer jours"
 }
