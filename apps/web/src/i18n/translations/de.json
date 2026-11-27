@@ -13023,5 +13023,18 @@
       "v": "v"
     },
     " weitere unter Verknüpfte Elemente"
-  ]
+  ],
+  "8fe2454b9e851c93": "Kaltspeicher",
+  "0871a53c08770726": "Inaktive Threads in den Kaltspeicher verschieben",
+  "2d643d006110fcaa": "Verschiebt die Befehlsausgaben, Anhänge und Bilder erledigter und archivierter Threads, die so viele Tage inaktiv sind, aus der Datenbank. Nachrichten bleiben erhalten, sodass die Suche sie weiterhin findet.",
+  "db0afe05947419c3": "Bilder im Kaltspeicher",
+  "3621afefcc46cedf": "Alle behalten",
+  "30aece8959127aa8": "Verschobene Bilder öffnen sich wie bisher.",
+  "414c6af934e10aa2": "Nur Bilder behalten, deren Datei fehlt",
+  "53c337a19df053ad": "Ein Bild, dessen Datei noch auf dem Datenträger liegt, behält nur seinen Pfad und wird aus dieser Datei angezeigt. Andere Bilder bleiben erhalten.",
+  "80f4f0eaa7ad94de": "Alle verwerfen",
+  "79f20d8cd82c9ee2": "Jedes verschobene Bild behält nur seinen Pfad. Ein Bild, dessen Datei fehlt, wird nicht mehr angezeigt.",
+  "4543a246dbf923bf": "Größe des Kaltspeichers",
+  "69cfaefee02e5c43": "Aus dem Kaltspeicher gelesen.",
+  "7445fdc70ac0c734": "Datenträger Speicher Datenbank Größe verschieben inaktive Threads erledigt archiviert Befehlsausgabe Anhänge Bilder behalten verwerfen Tage"
 }

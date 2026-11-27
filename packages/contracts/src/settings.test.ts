@@ -67,7 +67,38 @@ describe("storage cleanup settings", () => {
       worktreeKeepWhen: "uncommitted-changes",
       browserArtifactsAfterDays: null,
       logsAfterDays: null,
+      coldStorageAfterDays: null,
+      coldStorageImages: "keep-all",
     });
+  });
+
+  it("decodes-cold-storage-settings", () => {
+    expect(decodeServerSettings({}).storageCleanup).toMatchObject({
+      coldStorageAfterDays: null,
+      coldStorageImages: "keep-all",
+    });
+    for (const coldStorageAfterDays of [null, 1, 3650]) {
+      expect(
+        decodeServerSettings({ storageCleanup: { coldStorageAfterDays } }).storageCleanup
+          .coldStorageAfterDays,
+      ).toBe(coldStorageAfterDays);
+    }
+    for (const coldStorageImages of ["keep-all", "keep-without-file", "drop-all"]) {
+      expect(decodeServerSettingsPatch({ storageCleanup: { coldStorageImages } })).toEqual({
+        storageCleanup: { coldStorageImages },
+      });
+    }
+    expect(decodeServerSettingsPatch({ storageCleanup: { coldStorageAfterDays: null } })).toEqual({
+      storageCleanup: { coldStorageAfterDays: null },
+    });
+    for (const coldStorageAfterDays of [0, 3651, 1.5]) {
+      expect(() =>
+        decodeServerSettingsPatch({ storageCleanup: { coldStorageAfterDays } }),
+      ).toThrow();
+    }
+    expect(() =>
+      decodeServerSettingsPatch({ storageCleanup: { coldStorageImages: "delete" } }),
+    ).toThrow();
   });
 
   it("accepts partial custom patches but requires complete stored project rules", () => {

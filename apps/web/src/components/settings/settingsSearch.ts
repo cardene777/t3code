@@ -302,6 +302,17 @@ export const SETTINGS_SEARCH_ITEMS = [
     ],
   },
   {
+    id: "storage-cold-storage",
+    title: msg("Cold storage"),
+    to: "/settings/maintenance",
+    scope: "environment-defaults",
+    searchTerms: [
+      msg(
+        "disk storage database size move idle threads settled archived command output attachments images keep drop days",
+      ),
+    ],
+  },
+  {
     id: "project-defaults",
     title: msg("Project defaults and overrides"),
     to: "/settings/threads",

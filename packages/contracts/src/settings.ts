@@ -1179,6 +1179,10 @@ const SettledWorktreeRetentionDays = Schema.NullOr(
   Schema.Int.check(Schema.isBetween({ minimum: 0, maximum: 3650 })),
 );
 
+/** How cold storage handles the images of a moving thread; a dropped image keeps only its path. */
+export const ColdStorageImages = Schema.Literals(["keep-all", "keep-without-file", "drop-all"]);
+export type ColdStorageImages = typeof ColdStorageImages.Type;
+
 export const WorktreeKeepWhen = Schema.Literals([
   "any-local-files",
   "uncommitted-changes",
@@ -1321,6 +1325,8 @@ export const DatabaseStorageStatus = Schema.Struct({
   canReclaim: Schema.optionalKey(Schema.Boolean),
   /** Why the last repair started from Settings failed. */
   reclaimFailure: Schema.optionalKey(Schema.String),
+  /** Size of `cold-storage.sqlite`; absent on servers without cold storage. */
+  coldStorageBytes: Schema.optionalKey(Schema.Number),
 });
 export type DatabaseStorageStatus = typeof DatabaseStorageStatus.Type;
 
@@ -1384,6 +1390,11 @@ export const StorageCleanupSettings = Schema.Struct({
     Schema.withDecodingDefault(Effect.succeed(null)),
   ),
   logsAfterDays: StorageRetentionDays.pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  /** Idle days before a settled or archived thread moves into cold storage; null keeps every thread in place. */
+  coldStorageAfterDays: StorageRetentionDays.pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  coldStorageImages: ColdStorageImages.pipe(
+    Schema.withDecodingDefault(Effect.succeed("keep-all" as const)),
+  ),
 });
 export type StorageCleanupSettings = typeof StorageCleanupSettings.Type;
 
@@ -1903,6 +1914,8 @@ export const ServerSettingsPatch = Schema.Struct({
       worktreeUnchanged: Schema.optionalKey(Schema.Boolean),
       browserArtifactsAfterDays: Schema.optionalKey(StorageRetentionDays),
       logsAfterDays: Schema.optionalKey(StorageRetentionDays),
+      coldStorageAfterDays: Schema.optionalKey(StorageRetentionDays),
+      coldStorageImages: Schema.optionalKey(ColdStorageImages),
     }),
   ),
   worktreesDirectory: Schema.optionalKey(TrimmedString),

@@ -13031,5 +13031,18 @@
       "v": "v"
     },
     " more in Linked items"
-  ]
+  ],
+  "8fe2454b9e851c93": "Cold storage",
+  "0871a53c08770726": "Move idle threads to cold storage",
+  "2d643d006110fcaa": "Moves the command output, attachments, and images of settled and archived threads idle this many days out of the database. Messages stay, so search still finds them.",
+  "db0afe05947419c3": "Images in cold storage",
+  "3621afefcc46cedf": "Keep all",
+  "30aece8959127aa8": "Moved images open as before.",
+  "414c6af934e10aa2": "Keep only images whose file is gone",
+  "53c337a19df053ad": "An image whose file is still on disk keeps only its path and shows from that file. Other images are kept.",
+  "80f4f0eaa7ad94de": "Drop all",
+  "79f20d8cd82c9ee2": "Every moved image keeps only its path. An image whose file is gone no longer shows.",
+  "4543a246dbf923bf": "Cold storage size",
+  "69cfaefee02e5c43": "Read from cold storage.",
+  "7445fdc70ac0c734": "disk storage database size move idle threads settled archived command output attachments images keep drop days"
 }

@@ -2,6 +2,7 @@ import type { ProjectThreadAwarenessV2Input } from "@t3tools/shared/agentAwarene
 import { applyOrchestrationV2ThreadVisit, pendingGuestMessageCount } from "@t3tools/contracts";
 import { applyThreadPullRequestLinkUpdate } from "../sourceControl/threadPullRequests.ts";
 import { projectTurnItemForWire } from "./WireProjection.ts";
+import { ColdStorageStore } from "../persistence/ColdStorageStore.ts";
 import * as Stream from "effect/Stream";
 import * as NodeSqliteClient from "@t3tools/shared/nodeSqliteClient";
 import { makeThreadFind } from "./ThreadFind.ts";
@@ -95,6 +96,7 @@ import {
 import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
 import * as Layer from "effect/Layer";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
@@ -2381,6 +2383,11 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
   ProjectionStoreV2,
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
+    // Optional so the many layers built over a bare database keep their type; the server provides it.
+    const restoreFromColdStorage = Option.match(yield* Effect.serviceOption(ColdStorageStore), {
+      onNone: () => Effect.succeed<OrchestrationV2TurnItem>,
+      onSome: (coldStorage) => coldStorage.restore,
+    });
 
     // SQLite uses the partial conversation index of migration 082 only for this exact predicate.
     const CONVERSATION_INDEX_EXCLUDED_TYPES = sql.literal(
@@ -6868,7 +6875,9 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
         Effect.flatMap((rows) =>
           rows[0] === undefined
             ? Effect.succeed(null)
-            : decodeTurnItemPayload(rows[0].payload_json),
+            : decodeTurnItemPayload(rows[0].payload_json).pipe(
+                Effect.flatMap(restoreFromColdStorage),
+              ),
         ),
         Effect.mapError(controlReadError(threadId)),
       );

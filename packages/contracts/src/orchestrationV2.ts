@@ -1994,6 +1994,8 @@ export const OrchestrationV2TurnItem = Schema.Union([
     output: Schema.optional(Schema.String),
     /** Set on the wire when output was withheld; fetch it with getTurnItem. */
     outputOmitted: Schema.optional(Schema.Boolean),
+    /** The output lives in cold storage next to the database; getTurnItem reads it back. */
+    fromColdStorage: Schema.optional(Schema.Boolean),
     outputIndicatesFailure: Schema.optional(Schema.Boolean),
     exitCode: Schema.optional(Schema.Int),
     /** Set when the command is a monitor, so background work lists it as a monitor. */
@@ -2147,6 +2149,8 @@ export const OrchestrationV2TurnItem = Schema.Union([
     output: Schema.optional(Schema.Unknown),
     /** Set on the wire when output was withheld; fetch it with getTurnItem. */
     outputOmitted: Schema.optional(Schema.Boolean),
+    /** The output's image data lives in cold storage next to the database; getTurnItem reads it back. */
+    fromColdStorage: Schema.optional(Schema.Boolean),
   }),
 ]);
 export type OrchestrationV2TurnItem = typeof OrchestrationV2TurnItem.Type;
@@ -2896,6 +2900,8 @@ export const OrchestrationV2TurnItemJson = Schema.Union([
     output: Schema.optional(Schema.String),
     /** Set on the wire when output was withheld; fetch it with getTurnItem. */
     outputOmitted: Schema.optional(Schema.Boolean),
+    /** The output lives in cold storage next to the database; getTurnItem reads it back. */
+    fromColdStorage: Schema.optional(Schema.Boolean),
     outputIndicatesFailure: Schema.optional(Schema.Boolean),
     exitCode: Schema.optional(Schema.Int),
     /** Set when the command is a monitor, so background work lists it as a monitor. */
@@ -3042,6 +3048,8 @@ export const OrchestrationV2TurnItemJson = Schema.Union([
     output: Schema.optional(Schema.Unknown),
     /** Set on the wire when output was withheld; fetch it with getTurnItem. */
     outputOmitted: Schema.optional(Schema.Boolean),
+    /** The output's image data lives in cold storage next to the database; getTurnItem reads it back. */
+    fromColdStorage: Schema.optional(Schema.Boolean),
   }),
 ]);
 export type OrchestrationV2TurnItemJson = typeof OrchestrationV2TurnItemJson.Type;

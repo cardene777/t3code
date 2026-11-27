@@ -171,7 +171,7 @@ export function projectTurnItemForWire(item: OrchestrationV2TurnItem): Orchestra
       return {
         ...projected,
         ...(failed ? { outputIndicatesFailure: true } : {}),
-        ...(output?.trim() ? { outputOmitted: true } : {}),
+        ...(output?.trim() || item.fromColdStorage === true ? { outputOmitted: true } : {}),
       };
     }
     case "file_change": {

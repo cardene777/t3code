@@ -13030,5 +13030,18 @@
       "v": "v"
     },
     " till i Länkade objekt"
-  ]
+  ],
+  "8fe2454b9e851c93": "Kall lagring",
+  "0871a53c08770726": "Flytta inaktiva trådar till kall lagring",
+  "2d643d006110fcaa": "Flyttar kommandoutdata, bilagor och bilder från klara och arkiverade trådar som varit inaktiva så här många dagar ut ur databasen. Meddelandena ligger kvar, så sökningen hittar dem fortfarande.",
+  "db0afe05947419c3": "Bilder i kall lagring",
+  "3621afefcc46cedf": "Behåll alla",
+  "30aece8959127aa8": "Flyttade bilder öppnas som tidigare.",
+  "414c6af934e10aa2": "Behåll bara bilder vars fil saknas",
+  "53c337a19df053ad": "En bild vars fil fortfarande finns på disken behåller bara sin sökväg och visas från den filen. Andra bilder behålls.",
+  "80f4f0eaa7ad94de": "Släng alla",
+  "79f20d8cd82c9ee2": "Varje flyttad bild behåller bara sin sökväg. En bild vars fil saknas visas inte längre.",
+  "4543a246dbf923bf": "Storlek på kall lagring",
+  "69cfaefee02e5c43": "Läst från kall lagring.",
+  "7445fdc70ac0c734": "disk lagring databas storlek flytta inaktiva trådar klara arkiverade kommandoutdata bilagor bilder behåll släng dagar"
 }

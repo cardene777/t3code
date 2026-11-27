@@ -244,6 +244,7 @@ function ToolCallBody(
     readonly args?: unknown;
     readonly toolName?: string | null;
     readonly exitCode?: number | undefined;
+    readonly fromColdStorage?: boolean | undefined;
     /** Replaces fetched output. */
     readonly outputSlot?: ReactNode;
   },
@@ -278,6 +279,11 @@ function ToolCallBody(
           <T>
             exit <Var>{props.exitCode}</Var>
           </T>
+        </div>
+      ) : null}
+      {props.fromColdStorage === true ? (
+        <div>
+          <T>Read from cold storage.</T>
         </div>
       ) : null}
     </div>
@@ -322,6 +328,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
         <ToolCallBody
           command={item.input}
           exitCode={item.exitCode}
+          fromColdStorage={item.fromColdStorage}
           {...outputState}
           onImageExpand={props.onImageExpand}
           outputSlot={
@@ -437,6 +444,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
         <ToolCallBody
           toolName={item.toolName}
           args={item.input}
+          fromColdStorage={item.fromColdStorage}
           {...outputState}
           onImageExpand={props.onImageExpand}
         />

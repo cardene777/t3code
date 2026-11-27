@@ -6,6 +6,8 @@ import * as EnvironmentKeys from "./cloud/environmentKeys.ts";
 import * as AssetSigner from "./assets/AssetSigner.ts";
 import * as WorkspacePreviewRevisions from "./assets/WorkspacePreviewRevisions.ts";
 import * as DatabaseStorage from "./persistence/DatabaseStorage.ts";
+import * as ColdStorage from "./persistence/ColdStorage.ts";
+import * as ColdStorageStore from "./persistence/ColdStorageStore.ts";
 import * as StorageCleanup from "./storageCleanup.ts";
 import * as PullRequestSyncReactor from "./orchestration-v2/PullRequestSyncReactor.ts";
 import * as PullRequestWatchReactor from "./orchestration-v2/PullRequestWatchReactor.ts";
@@ -425,7 +427,10 @@ const layerPlatformServices = DocumentText.layer.pipe(
   Layer.provideMerge(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer, layerSpawner)),
 );
 
-const layerPersistence = Layer.empty.pipe(Layer.provideMerge(SqlitePersistence.layerConfig));
+// Cold storage sits beside the database so every ProjectionStore reads moved items back.
+const layerPersistence = Layer.empty.pipe(
+  Layer.provideMerge(Layer.mergeAll(SqlitePersistence.layerConfig, ColdStorageStore.layer)),
+);
 
 const layerVcsDriverRegistry = VcsDriverRegistry.layer.pipe(Layer.provide(VcsProjectConfig.layer));
 
@@ -741,9 +746,14 @@ const layerRuntimeCoreDependenciesBase = Layer.mergeAll(
   layerThreadSettlementWorker,
   layerIdleCompactionWorker,
   StorageCleanup.layer.pipe(Layer.provide(ProjectionStoreV2.layer)),
-  DatabaseStorage.layer.pipe(
-    Layer.provide(ProjectionMaintenance.layer),
-    Layer.provide(layerServerRestart),
+  ColdStorage.layer.pipe(
+    Layer.provide(ProjectionStoreV2.layer),
+    Layer.provideMerge(
+      DatabaseStorage.layer.pipe(
+        Layer.provide(ProjectionMaintenance.layer),
+        Layer.provide(layerServerRestart),
+      ),
+    ),
   ),
   layerThreadPullRequestWorker,
   KeepAwake.layer,
